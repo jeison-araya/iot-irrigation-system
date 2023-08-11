@@ -13,13 +13,16 @@ enum WiFiModes {
 
 class WiFiManager {
 public:
+  typedef void (*ConnectionModeCallback)();
+  typedef void (*PairingModeCallback)();
+  
   WiFiManager();
 
   void begin();
+  void setConnectionModeCallback(ConnectionModeCallback connectionModeCallback);
+  void setPairingModeCallback(PairingModeCallback pairingModeCallback);
   void forgetCredentials();
-  void handleClient();
-  void retryConnection();
-  WiFiModes getCurrentMode();
+  void loop();
 
 private:
   bool savedCredentials();
@@ -33,6 +36,7 @@ private:
   void setCurrentMode(WiFiModes mode);
   String getSSID();
   String getPassword();
+  WiFiModes getCurrentMode();
 
   WiFiModes currentMode;
   ESP8266WebServer server;
@@ -44,6 +48,9 @@ private:
   const char *AP_PASS = "Garden123";
 
   const int RECONNECTION_ATTEMPTS = 5;
+
+  ConnectionModeCallback connectionModeCallback;
+  PairingModeCallback pairingModeCallback;
 };
 
 #endif

@@ -26,15 +26,25 @@ void WiFiManager::forgetCredentials() {
   enablePendingRestart();
 }
 
-void WiFiManager::retryConnection() {
-  if (savedCredentials()) {
-    enableConnectionMode();
+void WiFiManager::loop() {
+  switch (getCurrentMode()) {
+    case CONNECTION_MODE:
+      if (connectionModeCallback) {
+        connectionModeCallback();
+      }
+      break;
+    case PAIRING_MODE:
+      if (pairingModeCallback) {
+        pairingModeCallback();
+      }
+      server.handleClient();
+      break;
+    case PENDING_RESTART:
+      ESP.restart();
+      break;
   }
 }
 
-void WiFiManager::handleClient() {
-  server.handleClient();
-}
 
 bool WiFiManager::savedCredentials() {
   String ssid = getSSID();
@@ -111,6 +121,15 @@ void WiFiManager::setPassword(String &password) {
 
   EEPROM.commit();
 }
+
+void WiFiManager::setConnectionModeCallback(ConnectionModeCallback callback) {
+  connectionModeCallback = callback;
+}
+
+void WiFiManager::setPairingModeCallback(PairingModeCallback callback) {
+  pairingModeCallback = callback;
+}
+
 
 bool WiFiManager::connected() {
   return WiFi.status() == WL_CONNECTED;
